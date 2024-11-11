@@ -18,15 +18,16 @@ def get_id_video(url):
 def download_video(url):
         # Ruta donde se guardará el video descargado
     download_path = 'VideosVimeo/'
-
+    os.makedirs(download_path, exist_ok=True)
     # Configuración de yt-dlp para obtener el título del video
     ydl_opts = {
+        'format': 'bv+ba',
         'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Usar el título original del video
         'quiet': True,  # Suprimir la salida del proceso de descarga
     }
 
     # Descargar el video utilizando yt-dlp
-    with ydl.YoutubeDL(ydl_opts) as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=False)  # Solo extraemos la información sin descargar aún
         video_title = info_dict.get('title', None)  # Obtener el título del video
         print(f"Video descargado con el título: {video_title}")
@@ -42,7 +43,8 @@ def download_video(url):
 
     # Comando FFmpeg para comprimir el video
     ffmpeg_command = [
-        'ffmpeg', '-i', input_filename,        # Archivo de entrada
+        'ffmpeg', 
+        '-i', input_filename,                 # Archivo de entrada
         '-c:v', 'libx264',                     # Códec de video H.264
         '-crf', '23',                           # Calidad del video (ajustable)
         '-preset', 'medium',                    # Preset de velocidad de compresión
@@ -113,8 +115,16 @@ def get_link(playwright):
         # Completa el formulario de login
         page.fill('input[name="username"]', user)  # Reemplaza 'tu_usuario' por tu nombre de usuario
         page.fill('input[name="password"]', password)  # Reemplaza 'tu_contraseña' por tu contraseña
+        remember_me_selector = 'input[type="checkbox"][name="remember"]'  # Ajusta el selector si es necesario
+        
+        if page.query_selector(remember_me_selector):
+            page.check(remember_me_selector)
+            
         page.click('button[type="submit"]')  # Ajusta el selector si el botón de login es diferente
         page.close()
+        time.sleep(2)
+        
+        #Buscaremos el remember para guardarlo el usuario en cookies.
         
         # Se abre la url del embedded video
         new_page = browser.new_page()
