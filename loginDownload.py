@@ -97,8 +97,6 @@ def get_link(playwright):
     try:  
         
         url = input("Escriba la url del curso: ")
-        user=input("Escriba su usuario o correo: ")
-        password=input("Escriba su contraseña: ") 
         
         browser = playwright.chromium.launch_persistent_context(
             user_data_dir = "/home/thor_dog/DocsPython/data",
@@ -107,29 +105,29 @@ def get_link(playwright):
         )  # headless=False para ver la interacción
         
         page = browser.new_page()
-       
-        # Abre la primera URL (la página de login)
+        #la primera URL (la página de login)
         page.goto('https://autismpartnershipfoundation.org/all-courses/my-account/')
         
-
         # Completa el formulario de login
-        page.fill('input[name="username"]', user)  # Reemplaza 'tu_usuario' por tu nombre de usuario
-        page.fill('input[name="password"]', password)  # Reemplaza 'tu_contraseña' por tu contraseña
-        
-        remember_me_selector = 'input[type="checkbox"][name="rememberme"]'  # Ajusta el selector si es necesario
-        
-        if page.query_selector(remember_me_selector):
-            page.check(remember_me_selector)
+        username_input_selector = 'input[name="username"]'
+        if page.query_selector(username_input_selector):
+            user=input("Escriba su usuario o correo: ")
+            password=input("Escriba su contraseña: ")
             
-        page.click('button[type="submit"]')  # Ajusta el selector si el botón de login es diferente
-        time.sleep(2)
-        
-        #Buscaremos el remember para guardarlo el usuario en cookies.
+            page.fill('input[name="username"]', user)  # Reemplaza 'tu_usuario' por tu nombre de usuario
+            page.fill('input[name="password"]', password)  # Reemplaza 'tu_contraseña' por tu contraseña
+            
+            remember_me_selector = 'input[type="checkbox"][name="rememberme"]'  # Ajusta el selector si es necesario
+            
+            if page.query_selector(remember_me_selector):
+                page.check(remember_me_selector)
+                
+            page.click('button[type="submit"]')  # Ajusta el selector si el botón de login es diferente
+            time.sleep(2)
+        else:    
+            print("El campo usuario no existe, por ende ya esta logeado.")        
+       
         page.goto(url)
-        # Se abre la url del embedded video
-        #new_page = browser.new_page()
-
-        #new_page.goto(url)
         time.sleep(2)
         
         #Se busca el src selector que contiene el vimeo.player del video
