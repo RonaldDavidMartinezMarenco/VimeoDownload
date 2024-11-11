@@ -8,148 +8,103 @@ import re
 import subprocess
 
 def get_id_video(url):
-    # Expresión regular para encontrar el ID después de "/video/"
+    # Regular expression to find the ID after "/video/"
     match = re.search(r'\/video\/(\d+)', url)
     if match:
-        return match.group(1)  # Retorna el primer grupo (el ID)
+        return match.group(1)  # Returns the first group (the ID)
     else:
-        return None  # Si no se encuentra el ID
+        return None  # If the ID is not found
 
 def download_video(url):
-        # Ruta donde se guardará el video descargado
+    #Path where the downloaded video will be saved
     download_path = 'VideosVimeo/'
     os.makedirs(download_path, exist_ok=True)
-    # Configuración de yt-dlp para obtener el título del video
+    
+    #Setting yt-dlp to get video title
     ydl_opts = {
         'format': 'bv+ba',
-        'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Usar el título original del video
-        'quiet': True,  # Suprimir la salida del proceso de descarga
+        'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'), #Use the original title of the video
+        'quiet': True,  #Suppress output of download process
     }
 
-    # Descargar el video utilizando yt-dlp
+    #Download the video using yt-dlp
     with YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(url, download=False)  # Solo extraemos la información sin descargar aún
-        video_title = info_dict.get('title', None)  # Obtener el título del video
+        info_dict = ydl.extract_info(url, download=False)  # We only extract the information without downloading it yet
+        video_title = info_dict.get('title', None)  #get the video title
         print(f"Video descargado con el título: {video_title}")
 
-        # Ahora descargamos el video
+        #Download the video now
         ydl.download([url])
 
-    # Ruta del archivo descargado
+    # path of the downloaded video
     input_filename = os.path.join(download_path, f'{video_title}.mp4')
 
-    # Ruta del archivo comprimido
+    # path of the compressed file
     compressed_filename = os.path.join(download_path, f'{video_title}_comprimido.mp4')
 
-    # Comando FFmpeg para comprimir el video
+    # ffmpeg settings to download the compressed video
     ffmpeg_command = [
-        'ffmpeg', 
-        '-i', input_filename,                 # Archivo de entrada
-        '-c:v', 'libx264',                     # Códec de video H.264
-        '-crf', '23',                           # Calidad del video (ajustable)
-        '-preset', 'medium',                    # Preset de velocidad de compresión
-        '-c:a', 'aac',                         # Códec de audio AAC
-        '-b:a', '128k',                        # Tasa de bits de audio
-        compressed_filename                    # Archivo de salida comprimido
+        'ffmpeg',
+        '-i', input_filename,                 # input file
+        '-c:v', 'libx264',                    # H.264 video codec
+        '-crf', '23',                         # Video quality (adjustable)
+        '-preset', 'medium',                  # Compression speed preset
+        '-c:a', 'aac',                        # AAC audio codec
+        '-b:a', '128k',                       # Audio bit rate
+        compressed_filename                   # compressed output file
     ]
 
-    # Ejecutar FFmpeg para comprimir el video
+    #Run FFmpeg to compress the video
     subprocess.run(ffmpeg_command)
-
     print(f"Video comprimido guardado como: {compressed_filename}")
-    
-    '''
-    output_dir = 'VideosVimeo'
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Nombre del archivo de salida en la carpeta especificada
-    output_filename = os.path.join(output_dir, 'video_descargado.mp4')
-    compressed_filename = os.path.join(output_dir, 'video_comprimido.mp4')
-    
-    # Configuración de yt-dlp para descargar el mejor video y audio
-    ydl_opts = {
-        'format': 'bv+ba',                               # Selecciona el mejor video y mejor audio y los combina
-         'outtmpl':output_filename                       
-        #'outtmpl': 'VideosVimeo/%(title)s.%(ext)s',  # Guarda el archivo en la carpeta VideosVimeo
-    }
-
-    # Descargar el video con yt-dlp
-    with YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-        
-    ffmpeg_command = [
-    'ffmpeg',               # Llamada al ejecutable ffmpeg
-    '-i', output_filename,  # Ruta del archivo de entrada
-    '-c:v', 'libx264',      # Códec de video H.264
-    '-crf', '23',           # Factor de calidad (cuanto más bajo, mejor calidad, 23 es estándar)
-    '-preset', 'medium',    # Configuración de la velocidad de compresión (ajusta entre 'ultrafast', 'fast', 'medium', etc.)
-    '-c:a', 'aac',          # Códec de audio AAC
-    '-b:a', '128k',         # Tasa de bits de audio (en kbps)                      
-    compressed_filename     # Ruta de salida para el video comprimido                 
-                    
-    ]
-    subprocess.run(ffmpeg_command)
-    print(f"Video descargado en '{output_filename}' y comprimido guardado como '{compressed_filename}'")
-    
-    '''  
+      
 def get_link(playwright):
-    # Inicia el navegador
-    try:  
+    
+    #Start the browser      
+    url = input("Escriba la url del curso: ") # Example URL: https://autismpartnershipfoundation.org/lessons/module-1a-introduction/
+    user=input("Escriba su usuario: ") #Here you set the user without input
+    password=input("Escriba su contraseña: ") #Here you set the password without input
         
-        url = input("Escriba la url del curso: ")
+    #Settings to save information like cookies.(Is faster than default settings). 
+    browser = playwright.chromium.launch_persistent_context(
+        user_data_dir = "/home/thor_dog/DocsPython/data",
+        headless = False,# headless=False para ver la interacción
+        )  
+    page = browser.new_page()
+    '''
+    browser = playwright.chromium.launch(headless=False)
+    context = browser.new_context()
+    page = context.new_page()
+    '''
+    #the first URL (the login page)
+    page.goto('https://autismpartnershipfoundation.org/all-courses/my-account/')
         
-        browser = playwright.chromium.launch_persistent_context(
-            user_data_dir = "/home/thor_dog/DocsPython/data",
-            headless = False,
-            accept_downloads=True,
-        )  # headless=False para ver la interacción
+    #Complete the login form
         
-        page = browser.new_page()
-        #la primera URL (la página de login)
-        page.goto('https://autismpartnershipfoundation.org/all-courses/my-account/')
-        
-        # Completa el formulario de login
-        username_input_selector = 'input[name="username"]'
-        if page.query_selector(username_input_selector):
-            user=input("Escriba su usuario o correo: ")
-            password=input("Escriba su contraseña: ")
-            
-            page.fill('input[name="username"]', user)  # Reemplaza 'tu_usuario' por tu nombre de usuario
-            page.fill('input[name="password"]', password)  # Reemplaza 'tu_contraseña' por tu contraseña
-            
-            remember_me_selector = 'input[type="checkbox"][name="rememberme"]'  # Ajusta el selector si es necesario
-            
-            if page.query_selector(remember_me_selector):
-                page.check(remember_me_selector)
-                
-            page.click('button[type="submit"]')  # Ajusta el selector si el botón de login es diferente
-            time.sleep(2)
-        else:    
-            print("El campo usuario no existe, por ende ya esta logeado.")        
-       
-        page.goto(url)
-        time.sleep(2)
-        
-        #Se busca el src selector que contiene el vimeo.player del video
-        iframe = page.query_selector("iframe[src*='vimeo.com']")
-        if iframe:
-            #Obtenemos la informacion del marco
-            videoLink = iframe.get_attribute("src")
-            print("Enlace del video:", videoLink)
-            #Obtenemos el ID
-            id = get_id_video(videoLink)
-            v = Vimeo.from_video_id(video_id=id)
-            meta = v.metadata
-            #Obtenemos url original del video
-            urlVideo = meta.url
-            print("Enlace a Vimeo",urlVideo)
-            download_video(urlVideo) 
-        else:
-            print("No se encontró el iframe de Vimeo.")
-            return None   
-        
-    finally:    
-         browser.close()
-
+    page.fill('input[name="username"]', user)  
+    page.fill('input[name="password"]', password)  
+    page.click('button[type="submit"]')  
+             
+    page.goto(url)
+          
+    #Search for the src selector that contains the vimeo.player of the video
+    iframe = page.query_selector("iframe[src*='vimeo.com']")
+    if iframe:
+        #We get the information from the frame
+        videoLink = iframe.get_attribute("src")
+        print("Enlace del video:", videoLink)
+        browser.close()
+        #get id of the video that we use to get the real URL 
+        id = get_id_video(videoLink)
+        v = Vimeo.from_video_id(video_id=id)
+        meta = v.metadata
+        #get the url video vimeo.com/{id}
+        urlVideo = meta.url
+        print("Enlace a Vimeo",urlVideo)
+        download_video(urlVideo) 
+    else:
+        print("No se encontró el iframe de Vimeo.")
+        return None         
+    
 with sync_playwright() as playwright:
     get_link(playwright)
