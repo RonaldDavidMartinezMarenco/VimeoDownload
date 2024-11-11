@@ -9,17 +9,20 @@ import subprocess
 
 def get_id_video(url):
     # Regular expression to find the ID after "/video/"
-    match = re.search(r'\/video\/(\d+)', url)
+    match = re.search(r'\/video\/(\d+)', url) #/video/secuencia de numero
     if match:
         return match.group(1)  # Returns the first group (the ID)
     else:
         return None  # If the ID is not found
 
-def download_video(url):
+def download_video(id):
     #Path where the downloaded video will be saved
     download_path = 'VideosVimeo/'
     os.makedirs(download_path, exist_ok=True)
     
+    url = f"https://vimeo.com/{id}"
+    
+    print("URl original video vimeo: ",url)
     #Setting yt-dlp to get video title
     ydl_opts = {
         'format': 'bv+ba',
@@ -69,7 +72,7 @@ def get_link(playwright):
     browser = playwright.chromium.launch_persistent_context(
         user_data_dir = "/home/thor_dog/DocsPython/data",
         headless = False,# headless=False para ver la interacción
-        )  
+    )  
     page = browser.new_page()
     '''
     browser = playwright.chromium.launch(headless=False)
@@ -92,16 +95,10 @@ def get_link(playwright):
     if iframe:
         #We get the information from the frame
         videoLink = iframe.get_attribute("src")
-        print("Enlace del video:", videoLink)
         browser.close()
         #get id of the video that we use to get the real URL 
         id = get_id_video(videoLink)
-        v = Vimeo.from_video_id(video_id=id)
-        meta = v.metadata
-        #get the url video vimeo.com/{id}
-        urlVideo = meta.url
-        print("Enlace a Vimeo",urlVideo)
-        download_video(urlVideo) 
+        download_video(id) 
     else:
         print("No se encontró el iframe de Vimeo.")
         return None         
