@@ -115,25 +115,25 @@ def get_link(playwright):
         # Completa el formulario de login
         page.fill('input[name="username"]', user)  # Reemplaza 'tu_usuario' por tu nombre de usuario
         page.fill('input[name="password"]', password)  # Reemplaza 'tu_contraseña' por tu contraseña
-        remember_me_selector = 'input[type="checkbox"][name="remember"]'  # Ajusta el selector si es necesario
+        
+        remember_me_selector = 'input[type="checkbox"][name="rememberme"]'  # Ajusta el selector si es necesario
         
         if page.query_selector(remember_me_selector):
             page.check(remember_me_selector)
             
         page.click('button[type="submit"]')  # Ajusta el selector si el botón de login es diferente
-        page.close()
         time.sleep(2)
         
         #Buscaremos el remember para guardarlo el usuario en cookies.
-        
+        page.goto(url)
         # Se abre la url del embedded video
-        new_page = browser.new_page()
+        #new_page = browser.new_page()
 
-        new_page.goto(url)
+        #new_page.goto(url)
         time.sleep(2)
         
         #Se busca el src selector que contiene el vimeo.player del video
-        iframe = new_page.query_selector("iframe[src*='vimeo.com']")
+        iframe = page.query_selector("iframe[src*='vimeo.com']")
         if iframe:
             #Obtenemos la informacion del marco
             videoLink = iframe.get_attribute("src")
