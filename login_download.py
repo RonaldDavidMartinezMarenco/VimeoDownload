@@ -1,10 +1,10 @@
 
 from playwright.sync_api import sync_playwright, TimeoutError
-import time
 import os
 from vimeo_downloader import Vimeo
 from yt_dlp import YoutubeDL
 import re
+import argparse
 import subprocess
 
 def get_id_video(url):
@@ -63,17 +63,21 @@ def download_video(id):
       
 def get_link(playwright):
     
-    #Start the browser      
-    url = input("Escriba la url del curso: ") # Example URL: https://autismpartnershipfoundation.org/lessons/module-1a-introduction/
-    user=input("Escriba su usuario: ") #Here you set the user without input
-    password=input("Escriba su contraseña: ") #Here you set the password without input
-        
+       
+    parser = argparse.ArgumentParser(description="Login and download content from a URL")
+    parser.add_argument("--user", required=True, help="Username for login")
+    parser.add_argument("--passw", required=True, help="Password for login")
+    parser.add_argument("url", help="URL of the content to download")
+    args = parser.parse_args() 
+                       
+    #Start the browser     
     #Settings to save information like cookies.(Is faster than default settings). 
     browser = playwright.chromium.launch_persistent_context(
         user_data_dir = "/home/thor_dog/DocsPython/data",
         headless = False,# headless=False para ver la interacción
     )  
     page = browser.new_page()
+    
     '''
     browser = playwright.chromium.launch(headless=False)
     context = browser.new_context()
@@ -84,20 +88,20 @@ def get_link(playwright):
         
     #Complete the login form
         
-    page.fill('input[name="username"]', user)  
-    page.fill('input[name="password"]', password)  
+    page.fill('input[name="username"]', args.user)  
+    page.fill('input[name="password"]', args.passw)  
     page.click('button[type="submit"]')  
              
-    page.goto(url)
+    page.goto(args.url)
           
     #Search for the src selector that contains the vimeo.player of the video
     iframe = page.query_selector("iframe[src*='vimeo.com']")
     if iframe:
         #We get the information from the frame
-        videoLink = iframe.get_attribute("src")
+        video_Link = iframe.get_attribute("src")
         browser.close()
         #get id of the video that we use to get the real URL 
-        id = get_id_video(videoLink)
+        id = get_id_video(video_Link)
         download_video(id) 
     else:
         print("No se encontró el iframe de Vimeo.")
